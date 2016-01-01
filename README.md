@@ -42,3 +42,50 @@
 1. go to `routes/index.js` and change the title from `Express` to `Greetings, user!`
 1. rerun the test
 1. restart the server, and checkout the browser
+
+### Testing a POST then GET request
+
+1. Add following test (post will redirect with status code 302)
+
+  ```
+  describe("contact form", function() {
+    it("thanks the user after they fill out the contact form", function(done) {
+      request(app).post("/contact")
+        .send({name: "Elowyn"})
+        .expect(302)
+        .expect('Location', /\/thank-you/, done)
+    })
+  })
+  ```
+
+1. run the test to see it fail
+1. add the route to `routes/index.js`
+
+  ```
+  router.post('/contact', function(req, res, next) {
+    res.redirect('/thank-you');
+  });
+  ```
+
+1. rerun the test
+  * the test passes, but we aren't really doing anything.
+  * we can add `console.log(req.body.name)` to the post route before we redirect and see that our POST data is coming through.
+  * how do we know what is happening after that redirect (supertest can't follow redirects)?
+1. replace the `done` callback in that last test with the following function:
+
+  ```
+  function() {
+    request(app).get('/thank-you')
+      .expect(200)
+      .expect(/Thank you/, done)
+  }
+  ```
+
+1. rerun the test
+1. add the route
+
+  ```
+  router.get('/thank-you', function(req, res, next) {
+    res.render('index', { title: 'Thank you!' });
+  });
+  ```
